@@ -1,10 +1,11 @@
 const express = require('express')
-const pool = require('./db')
+const pool = require('./db') 
 require('dotenv').config()
 const cookieParser = require('cookie-parser');
 const helmet = require('helmet');
 const authRoutes = require('./src/routes/authRoutes');
 const { authenticate } = require('./src/middlewares/authMiddleware');
+const chatRoutes = require('./src/routes/chatRoutes');
 
 const app = express()
 app.use(helmet());
@@ -12,6 +13,7 @@ app.use(express.json())
 app.use(cookieParser());
 
 app.use('/auth', authRoutes);
+app.use('/chat', authenticate, chatRoutes);
 
 app.get('/test', authenticate, async (req, res) => {
     try {
