@@ -15,6 +15,11 @@ app.use(cookieParser());
 app.use('/auth', authRoutes);
 app.use('/chat', authenticate, chatRoutes);
 
+const wishlistRoutes = require('./src/routes/wishlistRoutes');
+const reviewRoutes = require('./src/routes/reviewRoutes');
+app.use('/wishlist', authenticate, wishlistRoutes);
+app.use('/reviews', authenticate, reviewRoutes);
+
 app.get('/test', authenticate, async (req, res) => {
     try {
         const result = await pool.query(`
