@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 
 interface ProductCardProps {
   product: Product;
-  onAddToCart: (product: Product, size: string, gender: string, color: { label: string; hex: string }) => void;
+  onAddToCart: (product: Product) => void;
   onMessageSeller: (product: Product) => void;
   onProductClick: (product: Product) => void;
   isWishlisted?: boolean;
@@ -26,7 +26,7 @@ export default function ProductCard({
   const defaultColor = { label: "Default", hex: "#3D6B4F" };
 
   const handleAddToCart = () => {
-    onAddToCart(product, defaultSize, defaultGender, defaultColor);
+    onAddToCart(product);
   };
 
   const formattedDate = product.created_at
@@ -98,7 +98,7 @@ export default function ProductCard({
           </div>
           <div className="meta-item">
             <Tag size={11} />
-            <span>Active</span>
+            <span style={{ textTransform: 'capitalize' }}>{product.status}</span>
           </div>
         </div>
       </div>

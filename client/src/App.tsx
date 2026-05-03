@@ -93,41 +93,119 @@ function MainApp() {
     }, 2500);
   };
 
-  const addToCart = (product: Product, size: string, gender: string, color: { label: string; hex: string }) => {
-    setCartItems(prev => {
-      const existing = prev.find(
-        item =>
-          item.product.id === product.id &&
-          item.selectedSize === size &&
-          item.selectedGender === gender &&
-          item.selectedColor.label === color.label
-      );
-      if (existing) {
-        return prev.map(item =>
-          item === existing ? { ...item, qty: item.qty + 1 } : item
-        );
+  const fetchCart = async () => {
+    if (!accessToken) return;
+    try {
+      const res = await fetch(`${API_BASE}/cart`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        credentials: 'include'
+      });
+      const data = await res.json();
+      if (res.ok) {
+        const mappedCart = data.map((item: any) => ({
+          product: {
+            ...item,
+            id: item.product_id,
+            sizes: ["Universal"],
+            genders: ["Unisex"],
+            colors: [{ label: "Default", hex: "#3D6B4F" }],
+            imageEmoji: item.image_url ? null : '📦',
+            imageBg: '#F0EDE6',
+            image_url: item.image_url ? `${API_BASE}${item.image_url}` : null
+          },
+          qty: 1,
+          selectedSize: "Universal",
+          selectedGender: "Unisex",
+          selectedColor: { label: "Default", hex: "#3D6B4F" }
+        }));
+        setCartItems(mappedCart);
       }
-      return [...prev, { product, qty: 1, selectedSize: size, selectedGender: gender, selectedColor: color }];
-    });
-    showToast(`${product.name} added to cart`, 'success');
+    } catch (err) {
+      console.error('Fetch cart error:', err);
+    }
+  };
+
+  const addToCart = async (product: Product) => {
+    if (!accessToken) return showToast('Please login to add to cart', 'info');
+    try {
+      const res = await fetch(`${API_BASE}/cart`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}` 
+        },
+        body: JSON.stringify({ product_id: product.id }),
+        credentials: 'include'
+      });
+
+      if (res.ok) {
+        fetchCart();
+        showToast(`${product.name} added to cart`, 'success');
+      } else {
+        const errData = await res.json();
+        showToast(errData.message || 'Failed to add to cart', 'info');
+      }
+    } catch (err) {
+      console.error('Add to cart error:', err);
+    }
+  };
+
+  const removeItem = async (index: number) => {
+    const item = cartItems[index];
+    if (!accessToken) return;
+    try {
+      const res = await fetch(`${API_BASE}/cart/${item.product.id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${accessToken}` },
+        credentials: 'include'
+      });
+
+      if (res.ok) {
+        setCartItems(prev => prev.filter((_, i) => i !== index));
+        showToast('Item removed', 'info');
+      }
+    } catch (err) {
+      console.error('Remove item error:', err);
+    }
   };
 
   const updateQty = (index: number, delta: number) => {
-    setCartItems(prev => {
-      const updated = [...prev];
-      updated[index] = { ...updated[index], qty: Math.max(1, updated[index].qty + delta) };
-      return updated;
-    });
+    // Resale items are unique; quantity adjustment is disabled but kept for UI compatibility
+    showToast('Quantity is fixed for resale items', 'info');
   };
 
-  const removeItem = (index: number) => {
-    setCartItems(prev => prev.filter((_, i) => i !== index));
-    showToast('Item removed', 'info');
-  };
+  const clearCart = async () => {
+    if (cartItems.length === 0) return;
+    
+    // For this project, we'll process the first item as a primary transaction
+    // In a full resale marketplace, items are unique and handled individually
+    const item = cartItems[0];
+    try {
+      const res = await fetch(`${API_BASE}/transactions/checkout`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}` 
+        },
+        body: JSON.stringify({ 
+          product_id: item.product.id,
+          final_price: item.product.price,
+          seller_id: item.product.seller_id
+        }),
+        credentials: 'include'
+      });
 
-  const clearCart = () => {
-    setCartItems([]);
-    showToast('Order placed successfully! 🎉', 'success');
+      if (res.ok) {
+        setCartItems([]);
+        showToast('Order placed successfully! 🎉', 'success');
+        fetchProducts(); // Refresh to see "Sold" status
+      } else {
+        const errData = await res.json();
+        showToast(errData.message || 'Checkout failed', 'info');
+      }
+    } catch (err) {
+      console.error('Checkout error:', err);
+    }
   };
 
   const handleMessageSeller = (product: Product) => {
@@ -186,6 +264,7 @@ function MainApp() {
   useEffect(() => {
     fetchProducts();
     fetchWishlist();
+    fetchCart();
   }, [accessToken]);
 
   if (isLoading) {
@@ -270,7 +349,7 @@ function MainApp() {
           product={selectedProduct} 
           onClose={() => setSelectedProduct(null)} 
           onAddToCart={(p) => {
-            addToCart(p, "Universal", "Unisex", { label: "Default", hex: "#3D6B4F" });
+            addToCart(p);
             setSelectedProduct(null);
           }}
           onMessageSeller={(p) => {

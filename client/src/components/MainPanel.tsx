@@ -13,7 +13,7 @@ interface Category {
 
 interface MainPanelProps {
   products: Product[];
-  onAddToCart: (product: Product, size: string, gender: string, color: { label: string; hex: string }) => void;
+  onAddToCart: (product: Product) => void;
   onMessageSeller: (product: Product) => void;
   onProductClick: (product: Product) => void;
   cartItemCount: number;

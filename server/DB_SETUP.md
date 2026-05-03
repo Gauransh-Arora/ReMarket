@@ -1,6 +1,15 @@
 -- WARNING: This schema is for context only and is not meant to be run.
 -- Table order and constraints may not be valid for execution.
 
+CREATE TABLE public.cart (
+  cart_id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  product_id uuid NOT NULL,
+  added_at timestamp with time zone DEFAULT now(),
+  CONSTRAINT cart_pkey PRIMARY KEY (cart_id),
+  CONSTRAINT cart_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id),
+  CONSTRAINT cart_product_id_fkey FOREIGN KEY (product_id) REFERENCES public.products(product_id)
+);
 CREATE TABLE public.categories (
   category_id integer NOT NULL DEFAULT nextval('categories_category_id_seq'::regclass),
   name text NOT NULL UNIQUE,
@@ -41,6 +50,7 @@ CREATE TABLE public.products (
   condition text CHECK (condition = ANY (ARRAY['New'::text, 'Good'::text, 'Fair'::text, 'Poor'::text])),
   status text DEFAULT 'Draft'::text CHECK (status = ANY (ARRAY['Draft'::text, 'Active'::text, 'Reserved'::text, 'Sold'::text])),
   created_at timestamp with time zone DEFAULT now(),
+  image_url text,
   CONSTRAINT products_pkey PRIMARY KEY (product_id),
   CONSTRAINT products_seller_id_fkey FOREIGN KEY (seller_id) REFERENCES public.users(id),
   CONSTRAINT products_category_id_fkey FOREIGN KEY (category_id) REFERENCES public.categories(category_id)
@@ -79,11 +89,12 @@ CREATE TABLE public.users (
   email text NOT NULL UNIQUE,
   phone character varying,
   role text DEFAULT 'Student'::text CHECK (role = ANY (ARRAY['Student'::text, 'Admin'::text])),
-  trust_score numeric DEFAULT 5.00 CHECK (trust_score >= 0::numeric AND trust_score <= 5::numeric),
+  trust_score numeric DEFAULT 0.0 CHECK (trust_score >= 0::numeric AND trust_score <= 5::numeric),
   status text DEFAULT 'Active'::text CHECK (status = ANY (ARRAY['Active'::text, 'Suspended'::text, 'Inactive'::text])),
   created_at timestamp with time zone DEFAULT now(),
-  CONSTRAINT users_pkey PRIMARY KEY (id),
-  CONSTRAINT users_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
+  password_hash text,
+  refresh_token_hash text,
+  CONSTRAINT users_pkey PRIMARY KEY (id)
 );
 CREATE TABLE public.wishlist (
   wishlist_id uuid NOT NULL DEFAULT gen_random_uuid(),

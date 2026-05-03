@@ -57,7 +57,7 @@ BEGIN
     FOR UPDATE;
 
     -- 2. Verify product is still active
-    IF NOT EXISTS (SELECT 1 FROM public.products WHERE product_id = p_product_id AND status = 'Active') THEN
+    IF NOT EXISTS (SELECT 1 FROM public.products WHERE product_id = p_product_id AND status = 'available') THEN
         RAISE EXCEPTION 'TRANSACTION_ERROR: Product is no longer available.';
     END IF;
 
@@ -81,7 +81,7 @@ CREATE OR REPLACE FUNCTION public.fn_auto_mark_sold()
 RETURNS TRIGGER AS $$
 BEGIN
     UPDATE public.products
-    SET status = 'Sold'
+    SET status = 'sold'
     WHERE product_id = NEW.product_id;
     
     -- Also reject all other pending offers for this product
@@ -109,7 +109,7 @@ EXECUTE FUNCTION public.fn_auto_mark_sold();
 CREATE OR REPLACE FUNCTION public.fn_sync_marketplace_on_sale()
 RETURNS TRIGGER AS $$
 BEGIN
-    IF NEW.status = 'Sold' AND OLD.status != 'Sold' THEN
+    IF NEW.status = 'sold' AND OLD.status != 'sold' THEN
         -- Clear from all wishlists
         DELETE FROM public.wishlist WHERE product_id = NEW.product_id;
         

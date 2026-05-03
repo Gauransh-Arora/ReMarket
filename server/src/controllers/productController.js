@@ -4,34 +4,19 @@ const getProducts = async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT 
-        p.product_id as id,
-        p.name,
-        p.description,
-        p.price,
-        p.seller_id,
-        u.name as seller_name,
-        c.name as category,
-        p.status,
-        p.image_url,
-        COALESCE(rs.avg_rating, 0) as seller_rating,
-        COALESCE(rs.total_reviews, 0) as seller_reviews
-      FROM public.products p
-      LEFT JOIN public.users u ON u.id = p.seller_id
-      LEFT JOIN public.categories c ON c.category_id = p.category_id
-      LEFT JOIN (
-        SELECT reviewee_id, AVG(rating) as avg_rating, COUNT(*) as total_reviews
-        FROM public.reviews
-        GROUP BY reviewee_id
-      ) rs ON rs.reviewee_id = p.seller_id
-      WHERE p.status IN ('Available', 'Active')
+        p.product_id as id, p.name, p.description, p.price, p.seller_id,
+        u.name as seller_name, c.name as category, p.status, p.image_url
+      FROM products p
+      LEFT JOIN users u ON u.id = p.seller_id
+      LEFT JOIN categories c ON c.category_id = p.category_id
+      WHERE p.status = 'available'
       ORDER BY p.created_at DESC
     `);
 
-    console.log(`Fetched ${result.rows.length} active products`);
     res.json({ products: result.rows });
   } catch (error) {
     console.error('getProducts error:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -74,9 +59,9 @@ const addProduct = async (req, res) => {
 
     const result = await pool.query(`
       INSERT INTO public.products (seller_id, category_id, name, description, price, condition, status, image_url)
-      VALUES ($1, $2, $3, $4, $5, $6, 'Active', $7)
+      VALUES ($1, $2, $3, $4, $5, $6, 'available', $7)
       RETURNING product_id as id, name
-    `, [sellerId, categoryId, name, description, price, condition || 'Used', imageUrl]);
+    `, [sellerId, categoryId, name, description, price, condition || 'Good', imageUrl]);
 
     res.status(201).json({ 
       message: 'Product listed successfully',
@@ -117,7 +102,7 @@ const updateProduct = async (req, res) => {
   try {
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : undefined;
     
-    let query = 'UPDATE public.products SET updated_at = NOW()';
+    let query = 'UPDATE public.products SET name = name'; // Dummy start
     const params = [id, userId];
     let count = 3;
 
@@ -126,7 +111,7 @@ const updateProduct = async (req, res) => {
     if (price) { query += `, price = $${count++}`; params.push(price); }
     if (categoryId) { query += `, category_id = $${count++}`; params.push(categoryId); }
     if (condition) { query += `, condition = $${count++}`; params.push(condition); }
-    if (status) { query += `, status = $${count++}`; params.push(status); }
+    if (status) { query += `, status = $${count++}`; params.push(status.toLowerCase()); }
     if (imageUrl) { query += `, image_url = $${count++}`; params.push(imageUrl); }
 
     query += ` WHERE product_id = $1 AND seller_id = $2 RETURNING *`;

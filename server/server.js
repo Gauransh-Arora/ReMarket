@@ -12,6 +12,8 @@ const categoryRoutes = require('./src/routes/categoryRoutes');
 const productRoutes = require('./src/routes/productRoutes');
 const wishlistRoutes = require('./src/routes/wishlistRoutes');
 const reviewRoutes = require('./src/routes/reviewRoutes');
+const cartRoutes = require('./src/routes/cartRoutes');
+const transactionRoutes = require('./src/routes/transactionRoutes');
 const http = require('http');
 const { Server } = require('socket.io');
 
@@ -47,6 +49,8 @@ app.use('/categories', categoryRoutes)
 app.use('/products', productRoutes)
 app.use('/wishlist', authenticate, wishlistRoutes)
 app.use('/reviews', authenticate, reviewRoutes)
+app.use('/cart', authenticate, cartRoutes)
+app.use('/transactions', authenticate, transactionRoutes)
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
 app.get('/test', async (req, res) => {
