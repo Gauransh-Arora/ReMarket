@@ -1,0 +1,110 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap');
+
+/* ===== DESIGN TOKENS ===== */
+:root {
+  --bg-page: #F0EDE6;
+  --bg-panel: #FFFFFF;
+  --bg-active-nav: #E8E5DE;
+  --text-primary: #2D2D2D;
+  --text-muted: #888880;
+  --accent-green: #3D6B4F;
+  --accent-green-mid: #5B8F6E;
+  --badge-orange: #E65C2E;
+  --border-color: #E5E3DC;
+  --bg-input: #F0EDE6;
+
+  /* Border radius tokens */
+  --radius-pill: 99px;
+  --radius-panel: 20px;
+  --radius-card: 16px;
+  --radius-checkout: 12px;
+  --radius-nav: 10px;
+  --radius-dropdown: 8px;
+  --radius-thumb: 8px;
+
+  /* Typography */
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* ===== RESET ===== */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+}
+
+body {
+  font-family: var(--font-family);
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-primary);
+  background-color: var(--bg-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: var(--radius-pill);
+}
+
+/* ===== APP SHELL ===== */
+.app-shell {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  height: 100vh;
+  background: var(--bg-page);
+  overflow: hidden;
+}
+
+/* ===== TOAST NOTIFICATION ===== */
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.toast {
+  background: var(--text-primary);
+  color: white;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation: slideIn 0.2s ease;
+  min-width: 220px;
+}
+
+.toast.success {
+  background: var(--accent-green);
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

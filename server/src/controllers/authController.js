@@ -89,7 +89,7 @@ const refresh = async (req, res) => {
       return res.status(401).json({ message: 'User no longer exists' });
     }
 
-    await authService.revokeRefreshToken(oldRefreshToken);
+    await authService.revokeRefreshToken(userId);
     const newAccessToken = authService.generateAccessToken(user);
     const newRefreshToken = await authService.generateRefreshToken(user.id);
 

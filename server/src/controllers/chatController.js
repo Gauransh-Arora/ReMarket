@@ -21,9 +21,24 @@ const sendMessage = async (req, res) => {
       [productId, senderId, receiverId, messageText]
     );
 
+    const messageData = result.rows[0];
+
+    // Emit via socket
+    if (req.io) {
+      const payload = {
+        ...messageData,
+        product_name: 'Update requested'
+      };
+      req.io.to(receiverId).emit('new_message', payload);
+      req.io.to(senderId).emit('new_message', payload);
+      
+      req.io.to(receiverId).emit('update_conversations');
+      req.io.to(senderId).emit('update_conversations');
+    }
+
     res.status(201).json({
       message: 'Message sent successfully',
-      data: result.rows[0],
+      data: messageData,
     });
   } catch (error) {
     console.error('sendMessage error:', error);
@@ -35,6 +50,7 @@ const sendMessage = async (req, res) => {
 // with the latest message preview and unread count
 const getConversations = async (req, res) => {
   const userId = req.user.sub;
+  console.log('Fetching conversations for user:', userId);
 
   try {
     const result = await pool.query(
@@ -68,12 +84,13 @@ const getConversations = async (req, res) => {
            LIMIT 1
          ) AS last_message_text
        FROM convos cv
-       JOIN public.users    u ON u.id = cv.other_user_id
-       JOIN public.products p ON p.product_id = cv.product_id
+       LEFT JOIN public.users    u ON u.id = cv.other_user_id
+       LEFT JOIN public.products p ON p.product_id = cv.product_id
        ORDER BY cv.last_message_at DESC`,
       [userId]
     );
 
+    console.log(`Found ${result.rows.length} conversations for user ${userId}`);
     res.json({ conversations: result.rows });
   } catch (error) {
     console.error('getConversations error:', error);
