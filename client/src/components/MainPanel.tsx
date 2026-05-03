@@ -15,20 +15,26 @@ interface MainPanelProps {
   products: Product[];
   onAddToCart: (product: Product, size: string, gender: string, color: { label: string; hex: string }) => void;
   onMessageSeller: (product: Product) => void;
+  onProductClick: (product: Product) => void;
   cartItemCount: number;
   onAddClick: () => void;
   isOrderPanelVisible: boolean;
   onToggleOrderPanel: () => void;
+  wishlistedIds: Set<string>;
+  onWishlistToggle: (id: string) => void;
 }
 
 export default function MainPanel({ 
   products, 
   onAddToCart, 
   onMessageSeller, 
+  onProductClick,
   cartItemCount, 
   onAddClick,
   isOrderPanelVisible,
-  onToggleOrderPanel
+  onToggleOrderPanel,
+  wishlistedIds,
+  onWishlistToggle
 }: MainPanelProps) {
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -162,6 +168,9 @@ export default function MainPanel({
               product={product} 
               onAddToCart={onAddToCart} 
               onMessageSeller={onMessageSeller}
+              onProductClick={onProductClick}
+              isWishlisted={wishlistedIds.has(product.id)}
+              onWishlistToggle={() => onWishlistToggle(product.id)}
             />
           ))}
         </div>

@@ -30,4 +30,18 @@ const getWishlist = async (req, res) => {
     }
 };
 
-module.exports = { addToWishlist, getWishlist };
+const removeFromWishlist = async (req, res) => {
+    const { product_id } = req.params;
+    const user_id = req.user.sub;
+    try {
+        await pool.query(
+            'DELETE FROM wishlist WHERE user_id = $1 AND product_id = $2',
+            [user_id, product_id]
+        );
+        res.json({ message: 'Removed from wishlist' });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+};
+
+module.exports = { addToWishlist, getWishlist, removeFromWishlist };

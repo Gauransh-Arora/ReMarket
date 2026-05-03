@@ -1,4 +1,4 @@
-import { MessageSquare, User, Clock, Tag, Info } from 'lucide-react';
+import { MessageSquare, User, Clock, Tag, Info, Heart, Star } from 'lucide-react';
 import type { Product } from '../data/products';
 import './ProductCard.css';
 import { useAuth } from '../context/AuthContext';
@@ -7,9 +7,19 @@ interface ProductCardProps {
   product: Product;
   onAddToCart: (product: Product, size: string, gender: string, color: { label: string; hex: string }) => void;
   onMessageSeller: (product: Product) => void;
+  onProductClick: (product: Product) => void;
+  isWishlisted?: boolean;
+  onWishlistToggle?: () => void;
 }
 
-export default function ProductCard({ product, onAddToCart, onMessageSeller }: ProductCardProps) {
+export default function ProductCard({ 
+  product, 
+  onAddToCart, 
+  onMessageSeller,
+  onProductClick,
+  isWishlisted = false,
+  onWishlistToggle
+}: ProductCardProps) {
   // We'll use defaults for now since these are no longer selectable in the main grid
   const defaultSize = "Universal";
   const defaultGender = "Unisex";
@@ -27,7 +37,7 @@ export default function ProductCard({ product, onAddToCart, onMessageSeller }: P
   const isOwnProduct = user?.sub === product.seller_id;
 
   return (
-    <div className="product-card">
+    <div className="product-card" onClick={() => onProductClick(product)} style={{ cursor: 'pointer' }}>
       {/* Product image container */}
       <div className="card-image-wrap" style={{ background: product.imageBg }}>
         {product.image_url ? (
@@ -41,6 +51,17 @@ export default function ProductCard({ product, onAddToCart, onMessageSeller }: P
         {/* Badges */}
         <div className="card-badges">
           <span className="badge category-badge">{product.category}</span>
+          {!isOwnProduct && (
+            <button 
+              className={`wishlist-btn ${isWishlisted ? 'active' : ''}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onWishlistToggle?.();
+              }}
+            >
+              <Heart size={14} fill={isWishlisted ? 'currentColor' : 'none'} />
+            </button>
+          )}
           {product.condition && (
             <span className="badge condition-badge">{product.condition}</span>
           )}
@@ -55,6 +76,12 @@ export default function ProductCard({ product, onAddToCart, onMessageSeller }: P
             <div className="card-seller">
               <User size={10} />
               <span>{product.seller_name || 'Hostel Seller'}</span>
+              {product.seller_rating > 0 && (
+                <div className="seller-rating">
+                  <Star size={10} fill="#FFD700" color="#FFD700" />
+                  <span>{Number(product.seller_rating).toFixed(1)} ({product.seller_reviews})</span>
+                </div>
+              )}
             </div>
           </div>
           <div className="card-price">₹{product.price.toLocaleString('en-IN')}</div>
@@ -78,7 +105,7 @@ export default function ProductCard({ product, onAddToCart, onMessageSeller }: P
 
       {/* Actions */}
       <div className="card-actions">
-        <button className="add-to-cart-btn" onClick={handleAddToCart}>
+        <button className="add-to-cart-btn" onClick={(e) => { e.stopPropagation(); handleAddToCart(); }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="9" cy="21" r="1" />
             <circle cx="20" cy="21" r="1" />
@@ -89,7 +116,7 @@ export default function ProductCard({ product, onAddToCart, onMessageSeller }: P
         {!isOwnProduct && (
           <button
             className="msg-seller-btn"
-            onClick={() => onMessageSeller(product)}
+            onClick={(e) => { e.stopPropagation(); onMessageSeller(product); }}
             title="Message Seller"
           >
             <MessageSquare size={16} />

@@ -6,6 +6,8 @@ export interface Product {
   category: string;
   seller_id?: string;
   seller_name?: string;
+  seller_rating?: number;
+  seller_reviews?: number;
   status?: string;
   image_url?: string | null;
   condition?: string;

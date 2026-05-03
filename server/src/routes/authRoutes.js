@@ -14,7 +14,7 @@ const loginLimiter = rateLimit({
 
 const refreshLimiter = rateLimit({
   windowMs: 60 * 60 * 1000,
-  max: 1000, // Increased for dev/testing
+  max: 1000,
   message: { message: 'Too many refresh requests, please try again later' },
   standardHeaders: true,
   legacyHeaders: false,

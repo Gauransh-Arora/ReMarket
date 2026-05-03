@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { CartItem } from '../App';
-import { ShoppingCart, Trash2, Plus, Minus, CreditCard, Banknote, MapPin, Phone, User, ReceiptText, ChevronRight } from 'lucide-react';
+import { ShoppingCart, Package, Trash2, Plus, Minus, CreditCard, Banknote, MapPin, Phone, User, ReceiptText, ChevronRight } from 'lucide-react';
 import './OrderPanel.css';
 
 interface OrderPanelProps {

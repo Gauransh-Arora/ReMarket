@@ -12,10 +12,17 @@ const getProducts = async (req, res) => {
         u.name as seller_name,
         c.name as category,
         p.status,
-        p.image_url
+        p.image_url,
+        COALESCE(rs.avg_rating, 0) as seller_rating,
+        COALESCE(rs.total_reviews, 0) as seller_reviews
       FROM public.products p
       LEFT JOIN public.users u ON u.id = p.seller_id
       LEFT JOIN public.categories c ON c.category_id = p.category_id
+      LEFT JOIN (
+        SELECT reviewee_id, AVG(rating) as avg_rating, COUNT(*) as total_reviews
+        FROM public.reviews
+        GROUP BY reviewee_id
+      ) rs ON rs.reviewee_id = p.seller_id
       WHERE p.status IN ('Available', 'Active')
       ORDER BY p.created_at DESC
     `);

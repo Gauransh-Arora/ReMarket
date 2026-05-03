@@ -19,12 +19,12 @@ const app = express()
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: '*', // Adjust for production
+    origin: '*',
     methods: ['GET', 'POST']
   }
 });
 
-// Attach io to req
+
 app.use((req, res, next) => {
   req.io = io;
   next();
@@ -66,7 +66,7 @@ app.get('/test', async (req, res) => {
     }
 })
 
-// Socket.io logic
+
 io.on('connection', (socket) => {
   console.log('User connected:', socket.id);
 

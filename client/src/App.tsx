@@ -9,6 +9,8 @@ import AuthPage from './pages/AuthPage';
 import ChatPanel from './components/ChatPanel';
 import SellPanel from './components/SellPanel';
 import MyProductsPanel from './components/MyProductsPanel';
+import WishlistPanel from './components/WishlistPanel';
+import ProductDetailModal from './components/ProductDetailModal';
 import { ShoppingCart } from 'lucide-react';
 
 export interface CartItem {
@@ -27,9 +29,11 @@ export interface Toast {
 
 function MainApp() {
   const { user, isLoading, accessToken } = useAuth();
-  const [activeView, setActiveView] = useState<'store' | 'chat' | 'sell' | 'my-listings'>('store');
+  const [activeView, setActiveView] = useState<'store' | 'chat' | 'sell' | 'my-listings' | 'wishlist'>('store');
   const [chatTarget, setChatTarget] = useState<Product | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
+  const [wishlistedIds, setWishlistedIds] = useState<Set<string>>(new Set());
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -79,9 +83,7 @@ function MainApp() {
     }
   };
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+
 
   const showToast = (message: string, type: 'success' | 'info' = 'success') => {
     const id = Date.now();
@@ -133,6 +135,59 @@ function MainApp() {
     setActiveView('chat');
   };
 
+  const fetchWishlist = async () => {
+    if (!accessToken) return;
+    try {
+      const res = await fetch(`${API_BASE}/wishlist`, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        credentials: 'include'
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setWishlistedIds(new Set(data.map((item: any) => item.product_id)));
+      }
+    } catch (err) {
+      console.error('Fetch wishlist error:', err);
+    }
+  };
+
+  const toggleWishlist = async (productId: string) => {
+    if (!accessToken) return showToast('Please login to use wishlist', 'info');
+    
+    const isCurrentlyWishlisted = wishlistedIds.has(productId);
+    try {
+      const method = isCurrentlyWishlisted ? 'DELETE' : 'POST';
+      const url = isCurrentlyWishlisted ? `${API_BASE}/wishlist/${productId}` : `${API_BASE}/wishlist`;
+      
+      const res = await fetch(url, {
+        method,
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}` 
+        },
+        body: isCurrentlyWishlisted ? undefined : JSON.stringify({ product_id: productId }),
+        credentials: 'include'
+      });
+
+      if (res.ok) {
+        setWishlistedIds(prev => {
+          const next = new Set(prev);
+          if (isCurrentlyWishlisted) next.delete(productId);
+          else next.add(productId);
+          return next;
+        });
+        showToast(isCurrentlyWishlisted ? 'Removed from wishlist' : 'Added to wishlist', 'success');
+      }
+    } catch (err) {
+      console.error('Toggle wishlist error:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+    fetchWishlist();
+  }, [accessToken]);
+
   if (isLoading) {
     return (
       <div style={{ height: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-page)' }}>
@@ -153,10 +208,13 @@ function MainApp() {
           products={products} 
           onAddToCart={addToCart} 
           onMessageSeller={handleMessageSeller} 
+          onProductClick={setSelectedProduct}
           cartItemCount={cartItems.length} 
           onAddClick={() => setActiveView('sell')}
           isOrderPanelVisible={isOrderPanelVisible}
           onToggleOrderPanel={() => setIsOrderPanelVisible(!isOrderPanelVisible)}
+          wishlistedIds={wishlistedIds}
+          onWishlistToggle={toggleWishlist}
         />
       ) : activeView === 'chat' ? (
         <ChatPanel 
@@ -166,6 +224,8 @@ function MainApp() {
         />
       ) : activeView === 'my-listings' ? (
         <MyProductsPanel onAddClick={() => setActiveView('sell')} />
+      ) : activeView === 'wishlist' ? (
+        <WishlistPanel onShopClick={() => setActiveView('store')} />
       ) : (
         <SellPanel onBack={() => setActiveView('store')} onSuccess={() => {
           setActiveView('store');
@@ -204,6 +264,23 @@ function MainApp() {
           </div>
         ))}
       </div>
+
+      {selectedProduct && (
+        <ProductDetailModal 
+          product={selectedProduct} 
+          onClose={() => setSelectedProduct(null)} 
+          onAddToCart={(p) => {
+            addToCart(p, "Universal", "Unisex", { label: "Default", hex: "#3D6B4F" });
+            setSelectedProduct(null);
+          }}
+          onMessageSeller={(p) => {
+            handleMessageSeller(p);
+            setSelectedProduct(null);
+          }}
+          isWishlisted={wishlistedIds.has(selectedProduct.id)}
+          onWishlistToggle={() => toggleWishlist(selectedProduct.id)}
+        />
+      )}
     </div>
   );
 }

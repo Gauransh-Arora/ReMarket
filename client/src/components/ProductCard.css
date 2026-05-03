@@ -50,6 +50,10 @@
   pointer-events: none;
 }
 
+.card-badges > * {
+  pointer-events: auto;
+}
+
 .badge {
   padding: 3px 8px;
   border-radius: 6px;
@@ -68,6 +72,32 @@
 .condition-badge {
   background: var(--accent-green);
   color: white;
+}
+
+.wishlist-btn {
+  background: rgba(255, 255, 255, 0.8);
+  border: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+  backdrop-filter: blur(4px);
+}
+
+.wishlist-btn:hover {
+  background: white;
+  color: #EF4444;
+  transform: scale(1.1);
+}
+
+.wishlist-btn.active {
+  color: #EF4444;
+  background: white;
 }
 
 .card-body {
@@ -105,6 +135,17 @@
   gap: 4px;
   font-size: 11px;
   color: var(--text-muted);
+}
+
+.seller-rating {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 4px;
+  padding-left: 8px;
+  border-left: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-weight: 500;
 }
 
 .card-price {
