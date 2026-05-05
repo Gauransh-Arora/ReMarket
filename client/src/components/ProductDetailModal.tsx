@@ -17,6 +17,7 @@ interface ProductDetailModalProps {
   onMessageSeller: (p: Product) => void;
   isWishlisted: boolean;
   onWishlistToggle: () => void;
+  onPlaceOffer: (productId: string, price: number) => void;
 }
 
 export default function ProductDetailModal({ 
@@ -25,9 +26,11 @@ export default function ProductDetailModal({
   onAddToCart, 
   onMessageSeller,
   isWishlisted,
-  onWishlistToggle
+  onWishlistToggle,
+  onPlaceOffer
 }: ProductDetailModalProps) {
   const { user, accessToken } = useAuth();
+  const [offerPrice, setOfferPrice] = useState<string>(product.price.toString());
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loadingReviews, setLoadingReviews] = useState(true);
   const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
@@ -135,6 +138,27 @@ export default function ProductDetailModal({
                 {isWishlisted ? 'Saved' : 'Wishlist'}
               </button>
             </div>
+
+            {user?.id !== product.seller_id && (
+              <div className="offer-section">
+                <div className="offer-input-group">
+                  <div className="offer-input-wrapper">
+                    <span>₹</span>
+                    <input 
+                      type="number" 
+                      value={offerPrice}
+                      onChange={e => setOfferPrice(e.target.value)}
+                      placeholder="Enter bid price"
+                    />
+                  </div>
+                  <button className="offer-btn" onClick={() => onPlaceOffer(product.id, Number(offerPrice))}>
+                    <Tag size={16} />
+                    Make Offer
+                  </button>
+                </div>
+                <p className="offer-note">Offers can only be placed on Sundays.</p>
+              </div>
+            )}
 
             {/* Reviews Section */}
             <div className="reviews-section">

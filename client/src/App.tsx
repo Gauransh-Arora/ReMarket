@@ -10,6 +10,7 @@ import ChatPanel from './components/ChatPanel';
 import SellPanel from './components/SellPanel';
 import MyProductsPanel from './components/MyProductsPanel';
 import WishlistPanel from './components/WishlistPanel';
+import OffersPanel from './components/OffersPanel';
 import ProductDetailModal from './components/ProductDetailModal';
 import { ShoppingCart } from 'lucide-react';
 
@@ -29,7 +30,7 @@ export interface Toast {
 
 function MainApp() {
   const { user, isLoading, accessToken } = useAuth();
-  const [activeView, setActiveView] = useState<'store' | 'chat' | 'sell' | 'my-listings' | 'wishlist'>('store');
+  const [activeView, setActiveView] = useState<'store' | 'chat' | 'sell' | 'my-listings' | 'wishlist' | 'offers'>('store');
   const [chatTarget, setChatTarget] = useState<Product | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -145,6 +146,7 @@ function MainApp() {
         const errData = await res.json();
         showToast(errData.message || 'Failed to add to cart', 'info');
       }
+      
     } catch (err) {
       console.error('Add to cart error:', err);
     }
@@ -205,6 +207,62 @@ function MainApp() {
       }
     } catch (err) {
       console.error('Checkout error:', err);
+    }
+  };
+
+  const placeOffer = async (productId: string, price: number) => {
+    if (!accessToken) {
+      showToast("Please login to make an offer", "info");
+      return;
+    }
+    try {
+      const res = await fetch(`${API_BASE}/offers`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}` 
+        },
+        body: JSON.stringify({ product_id: productId, offered_price: price }),
+        credentials: 'include'
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast("Offer placed successfully! 🏷️");
+      } else {
+        showToast(data.message || "Failed to place offer", "info");
+      }
+    } catch (err) {
+      showToast("Connection error", "info");
+    }
+  };
+
+  const handleOfferCheckout = async (productId: string, price: number, sellerId: string, offerId: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/transactions/checkout`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}` 
+        },
+        body: JSON.stringify({ 
+          product_id: productId,
+          final_price: price,
+          seller_id: sellerId,
+          offer_id: offerId
+        }),
+        credentials: 'include'
+      });
+
+      if (res.ok) {
+        showToast('Negotiated purchase complete! 🎉', 'success');
+        setActiveView('store');
+        fetchProducts();
+      } else {
+        const errData = await res.json();
+        showToast(errData.message || 'Checkout failed', 'info');
+      }
+    } catch (err) {
+      console.error('Offer checkout error:', err);
     }
   };
 
@@ -282,36 +340,40 @@ function MainApp() {
   return (
     <div className="app-shell">
       <Sidebar activeView={activeView} onViewChange={setActiveView} unreadCount={unreadCount} />
-      {activeView === 'store' ? (
-        <MainPanel 
-          products={products} 
-          onAddToCart={addToCart} 
-          onMessageSeller={handleMessageSeller} 
-          onProductClick={setSelectedProduct}
-          cartItemCount={cartItems.length} 
-          onAddClick={() => setActiveView('sell')}
-          isOrderPanelVisible={isOrderPanelVisible}
-          onToggleOrderPanel={() => setIsOrderPanelVisible(!isOrderPanelVisible)}
-          wishlistedIds={wishlistedIds}
-          onWishlistToggle={toggleWishlist}
-        />
-      ) : activeView === 'chat' ? (
-        <ChatPanel 
-          targetProduct={chatTarget} 
-          onClearTarget={() => setChatTarget(null)} 
-          onUnreadUpdate={setUnreadCount} 
-        />
-      ) : activeView === 'my-listings' ? (
-        <MyProductsPanel onAddClick={() => setActiveView('sell')} />
-      ) : activeView === 'wishlist' ? (
-        <WishlistPanel onShopClick={() => setActiveView('store')} />
-      ) : (
-        <SellPanel onBack={() => setActiveView('store')} onSuccess={() => {
-          setActiveView('store');
-          fetchProducts();
-          showToast('Product listed successfully!', 'success');
-        }} />
-      )}
+      <div className="main-view-container">
+        {activeView === 'store' ? (
+          <MainPanel 
+            products={products} 
+            onAddToCart={addToCart} 
+            onMessageSeller={handleMessageSeller} 
+            onProductClick={setSelectedProduct}
+            cartItemCount={cartItems.length} 
+            onAddClick={() => setActiveView('sell')}
+            isOrderPanelVisible={isOrderPanelVisible}
+            onToggleOrderPanel={() => setIsOrderPanelVisible(!isOrderPanelVisible)}
+            wishlistedIds={wishlistedIds}
+            onWishlistToggle={toggleWishlist}
+          />
+        ) : activeView === 'chat' ? (
+          <ChatPanel 
+            targetProduct={chatTarget} 
+            onClearTarget={() => setChatTarget(null)} 
+            onUnreadUpdate={setUnreadCount} 
+          />
+        ) : activeView === 'my-listings' ? (
+          <MyProductsPanel onAddClick={() => setActiveView('sell')} />
+        ) : activeView === 'wishlist' ? (
+          <WishlistPanel onShopClick={() => setActiveView('store')} />
+        ) : activeView === 'offers' ? (
+          <OffersPanel onCheckout={handleOfferCheckout} />
+        ) : (
+          <SellPanel onBack={() => setActiveView('store')} onSuccess={() => {
+            setActiveView('store');
+            fetchProducts();
+            showToast('Product listed successfully!', 'success');
+          }} />
+        )}
+      </div>
       <OrderPanel 
         cartItems={cartItems} 
         onUpdateQty={updateQty} 
@@ -358,6 +420,10 @@ function MainApp() {
           }}
           isWishlisted={wishlistedIds.has(selectedProduct.id)}
           onWishlistToggle={() => toggleWishlist(selectedProduct.id)}
+          onPlaceOffer={(id, price) => {
+            placeOffer(id, price);
+            setSelectedProduct(null);
+          }}
         />
       )}
     </div>

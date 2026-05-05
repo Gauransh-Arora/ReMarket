@@ -254,6 +254,68 @@
   background: rgba(239, 68, 68, 0.05);
 }
 
+/* Offer Section */
+.offer-section {
+  background: rgba(61, 107, 79, 0.05);
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px dashed var(--accent-green);
+  margin-top: 4px;
+}
+
+.offer-input-group {
+  display: flex;
+  gap: 12px;
+}
+
+.offer-input-wrapper {
+  flex: 1;
+  background: white;
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  font-weight: 600;
+}
+
+.offer-input-wrapper input {
+  border: none;
+  background: none;
+  outline: none;
+  padding: 8px;
+  width: 100%;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.offer-btn {
+  background: var(--text-primary);
+  color: white;
+  border: none;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.offer-btn:hover {
+  background: black;
+}
+
+.offer-note {
+  font-size: 11px;
+  color: var(--accent-green);
+  margin-top: 8px;
+  font-weight: 600;
+  opacity: 0.8;
+}
+
 /* Reviews Styling */
 .reviews-section {
   border-top: 1px solid var(--border-color);

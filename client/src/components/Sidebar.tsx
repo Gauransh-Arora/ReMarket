@@ -18,11 +18,11 @@ import {
 
 const navItems = [
   { label: 'Inventory', icon: Package, view: 'store' as const },
+  { label: 'Offers', icon: ClipboardList, view: 'offers' as const },
   { label: 'My Listings', icon: Tag, view: 'my-listings' as const },
   { label: 'Wishlist', icon: Heart, view: 'wishlist' as const },
   { label: 'List Product', icon: Plus, view: 'sell' as const },
-  { label: 'Messages', icon: ClipboardList, view: 'chat' as const },
-  { label: 'Dashboard', icon: LayoutDashboard, view: 'store' as const },
+  { label: 'Messages', icon: BarChart2, view: 'chat' as const },
 ];
 
 const bookmarks = [
@@ -35,7 +35,7 @@ export default function Sidebar({
   unreadCount = 0 
 }: { 
   activeView: string, 
-  onViewChange: (v: 'store' | 'chat' | 'sell' | 'my-listings' | 'wishlist') => void,
+  onViewChange: (v: 'store' | 'chat' | 'sell' | 'my-listings' | 'wishlist' | 'offers') => void,
   unreadCount?: number 
 }) {
   const { user, logout } = useAuth();
@@ -73,7 +73,7 @@ export default function Sidebar({
         return (
           <div
             key={label}
-            className={`nav-item${((view === 'store' && activeView === 'store' && label === 'Inventory') || (view === 'chat' && activeView === 'chat') || (view === 'sell' && activeView === 'sell')) ? ' active' : ''}`}
+            className={`nav-item${activeView === view ? ' active' : ''}`}
             onClick={() => onViewChange(view)}
           >
             <span className="nav-item-icon">
