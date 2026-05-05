@@ -129,17 +129,25 @@ export default function ProductDetailModal({
             </div>
 
             <div className="modal-actions">
-              <button className="buy-btn" onClick={() => onAddToCart(product)}>
-                <ShoppingCart size={18} />
-                Add to Cart
-              </button>
-              <button className={`wish-btn ${isWishlisted ? 'active' : ''}`} onClick={onWishlistToggle}>
-                <Heart size={18} fill={isWishlisted ? 'currentColor' : 'none'} />
-                {isWishlisted ? 'Saved' : 'Wishlist'}
-              </button>
+              {user?.sub !== product.seller_id ? (
+                <>
+                  <button className="buy-btn" onClick={() => onAddToCart(product)}>
+                    <ShoppingCart size={18} />
+                    Add to Cart
+                  </button>
+                  <button className={`wish-btn ${isWishlisted ? 'active' : ''}`} onClick={onWishlistToggle}>
+                    <Heart size={18} fill={isWishlisted ? 'currentColor' : 'none'} />
+                    {isWishlisted ? 'Saved' : 'Wishlist'}
+                  </button>
+                </>
+              ) : (
+                <div className="own-product-note" style={{ color: 'var(--text-muted)', fontSize: '13px', padding: '10px', background: 'var(--bg-page)', borderRadius: '8px', width: '100%', textAlign: 'center' }}>
+                  This is your listing. You can manage it from the "My Listings" panel.
+                </div>
+              )}
             </div>
 
-            {user?.id !== product.seller_id && (
+            {user?.sub !== product.seller_id && (
               <div className="offer-section">
                 <div className="offer-input-group">
                   <div className="offer-input-wrapper">
@@ -189,7 +197,7 @@ export default function ProductDetailModal({
                 )}
               </div>
 
-              {user?.id !== product.seller_id && (
+              {user?.sub !== product.seller_id && (
                 <form className="review-form" onSubmit={handleReviewSubmit}>
                   <h4>Write a Review</h4>
                   <div className="rating-select">

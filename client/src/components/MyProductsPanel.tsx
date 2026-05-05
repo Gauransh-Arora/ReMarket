@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth, API_BASE } from '../context/AuthContext';
 import { Package, Edit2, Trash2, Plus, Clock, Tag } from 'lucide-react';
+import EditProductModal from './EditProductModal';
 import './ProductCard.css'; // Reuse product card styles
 import './MainPanel.css'; // Reuse grid styles
 
@@ -13,12 +14,14 @@ interface MyProduct {
   category: string;
   status: string;
   created_at: string;
+  image_url?: string;
 }
 
 export default function MyProductsPanel({ onAddClick }: { onAddClick: () => void }) {
   const { accessToken } = useAuth();
   const [myProducts, setMyProducts] = useState<MyProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingProduct, setEditingProduct] = useState<MyProduct | null>(null);
 
   const fetchMyProducts = async () => {
     try {
@@ -83,7 +86,11 @@ export default function MyProductsPanel({ onAddClick }: { onAddClick: () => void
           myProducts.map(product => (
             <div key={product.id} className="product-card">
               <div className="card-image-wrap" style={{ height: 140, background: 'var(--bg-page)' }}>
-                <Package size={48} strokeWidth={1} style={{ opacity: 0.1 }} />
+                {product.image_url ? (
+                  <img src={`${API_BASE}${product.image_url}`} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <Package size={48} strokeWidth={1} style={{ opacity: 0.1 }} />
+                )}
                 <div className="card-badges">
                   <span className="badge category-badge">{product.category}</span>
                   <span className="badge status-badge" style={{ background: product.status === 'Active' ? 'var(--accent-green)' : 'var(--text-muted)' }}>
@@ -112,7 +119,11 @@ export default function MyProductsPanel({ onAddClick }: { onAddClick: () => void
               </div>
 
               <div className="card-actions" style={{ gridTemplateColumns: '1fr 1fr' }}>
-                <button className="add-to-cart-btn" style={{ background: 'var(--bg-active-nav)', color: 'var(--text-primary)' }}>
+                <button 
+                  className="add-to-cart-btn" 
+                  style={{ background: 'var(--bg-active-nav)', color: 'var(--text-primary)' }}
+                  onClick={() => setEditingProduct(product)}
+                >
                   <Edit2 size={14} />
                   Edit
                 </button>
@@ -128,6 +139,17 @@ export default function MyProductsPanel({ onAddClick }: { onAddClick: () => void
           ))
         )}
       </div>
+
+      {editingProduct && (
+        <EditProductModal 
+          product={editingProduct} 
+          onClose={() => setEditingProduct(null)} 
+          onSuccess={() => {
+            setEditingProduct(null);
+            fetchMyProducts();
+          }} 
+        />
+      )}
     </div>
   );
 }

@@ -32,7 +32,8 @@ const getMyProducts = async (req, res) => {
         p.condition,
         c.name as category,
         p.status,
-        p.created_at
+        p.created_at,
+        p.image_url
       FROM public.products p
       JOIN public.categories c ON c.category_id = p.category_id
       WHERE p.seller_id = $1
@@ -102,19 +103,23 @@ const updateProduct = async (req, res) => {
   try {
     const imageUrl = req.file ? `/uploads/${req.file.filename}` : undefined;
     
-    let query = 'UPDATE public.products SET name = name'; // Dummy start
+    let sets = [];
     const params = [id, userId];
     let count = 3;
 
-    if (name) { query += `, name = $${count++}`; params.push(name); }
-    if (description) { query += `, description = $${count++}`; params.push(description); }
-    if (price) { query += `, price = $${count++}`; params.push(price); }
-    if (categoryId) { query += `, category_id = $${count++}`; params.push(categoryId); }
-    if (condition) { query += `, condition = $${count++}`; params.push(condition); }
-    if (status) { query += `, status = $${count++}`; params.push(status.toLowerCase()); }
-    if (imageUrl) { query += `, image_url = $${count++}`; params.push(imageUrl); }
+    if (name) { sets.push(`name = $${count++}`); params.push(name); }
+    if (description) { sets.push(`description = $${count++}`); params.push(description); }
+    if (price) { sets.push(`price = $${count++}`); params.push(price); }
+    if (categoryId) { sets.push(`category_id = $${count++}`); params.push(categoryId); }
+    if (condition) { sets.push(`condition = $${count++}`); params.push(condition); }
+    if (status) { sets.push(`status = $${count++}`); params.push(status.toLowerCase()); }
+    if (imageUrl) { sets.push(`image_url = $${count++}`); params.push(imageUrl); }
 
-    query += ` WHERE product_id = $1 AND seller_id = $2 RETURNING *`;
+    if (sets.length === 0) {
+      return res.status(400).json({ message: 'No fields to update' });
+    }
+
+    const query = `UPDATE public.products SET ${sets.join(', ')} WHERE product_id = $1 AND seller_id = $2 RETURNING *`;
 
     const result = await pool.query(query, params);
 

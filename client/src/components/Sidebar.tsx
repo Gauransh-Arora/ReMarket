@@ -13,7 +13,8 @@ import {
   Zap,
   Plus,
   Tag,
-  Heart
+  Heart,
+  ShoppingBag
 } from 'lucide-react';
 
 const navItems = [
@@ -22,6 +23,7 @@ const navItems = [
   { label: 'My Listings', icon: Tag, view: 'my-listings' as const },
   { label: 'Wishlist', icon: Heart, view: 'wishlist' as const },
   { label: 'List Product', icon: Plus, view: 'sell' as const },
+  { label: 'Transactions', icon: ShoppingBag, view: 'transactions' as const },
   { label: 'Messages', icon: BarChart2, view: 'chat' as const },
 ];
 
@@ -35,7 +37,7 @@ export default function Sidebar({
   unreadCount = 0 
 }: { 
   activeView: string, 
-  onViewChange: (v: 'store' | 'chat' | 'sell' | 'my-listings' | 'wishlist' | 'offers') => void,
+  onViewChange: (v: 'store' | 'chat' | 'sell' | 'my-listings' | 'wishlist' | 'offers' | 'transactions') => void,
   unreadCount?: number 
 }) {
   const { user, logout } = useAuth();

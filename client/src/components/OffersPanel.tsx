@@ -14,6 +14,7 @@ interface Offer {
   buyer_name: string;
   seller_name: string;
   seller_id: string;
+  buyer_id: string;
 }
 
 interface OffersPanelProps {
@@ -64,8 +65,8 @@ export default function OffersPanel({ onCheckout }: OffersPanelProps) {
   };
 
   const filteredOffers = offers.filter(o => {
-    if (activeTab === 'received') return o.seller_id === user?.id;
-    return o.seller_id !== user?.id;
+    if (activeTab === 'received') return o.seller_id === user?.sub;
+    return o.buyer_id === user?.sub;
   });
 
   return (

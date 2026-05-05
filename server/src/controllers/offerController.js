@@ -47,12 +47,14 @@ const getMyOffers = async (req, res) => {
                 o.offer_id, o.offered_price, o.offer_date, o.offer_status,
                 p.name as product_name, p.product_id, p.price as original_price,
                 u_buyer.name as buyer_name, u_seller.name as seller_name,
-                p.seller_id
+                p.seller_id, o.buyer_id
              FROM public.offers o
              JOIN public.products p ON o.product_id = p.product_id
              JOIN public.users u_buyer ON o.buyer_id = u_buyer.id
              JOIN public.users u_seller ON p.seller_id = u_seller.id
-             WHERE o.buyer_id = $1 OR p.seller_id = $1
+             LEFT JOIN public.transactions t ON t.offer_id = o.offer_id
+             WHERE (o.buyer_id = $1 OR p.seller_id = $1)
+               AND t.transaction_id IS NULL
              ORDER BY o.offer_date DESC`,
             [userId]
         );

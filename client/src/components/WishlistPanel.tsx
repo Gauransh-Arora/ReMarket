@@ -11,6 +11,7 @@ interface WishlistItem {
   price: number;
   status: string;
   added_at: string;
+  image_url?: string;
 }
 
 export default function WishlistPanel({ onShopClick }: { onShopClick: () => void }) {
@@ -36,10 +37,18 @@ export default function WishlistPanel({ onShopClick }: { onShopClick: () => void
   };
 
   const removeFromWishlist = async (productId: string) => {
-    // Note: Backend might need a DELETE endpoint. 
-    // For now, I'll assume we can toggle it.
-    // Since we only have POST /wishlist, maybe it toggles or we need a delete.
-    // I'll check wishlistRoutes.
+    try {
+      const res = await fetch(`${API_BASE}/wishlist/${productId}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${accessToken}` },
+        credentials: 'include'
+      });
+      if (res.ok) {
+        setWishlist(prev => prev.filter(item => item.product_id !== productId));
+      }
+    } catch (err) {
+      console.error('Failed to remove from wishlist', err);
+    }
   };
 
   useEffect(() => {
@@ -72,12 +81,23 @@ export default function WishlistPanel({ onShopClick }: { onShopClick: () => void
           wishlist.map(item => (
             <div key={item.wishlist_id} className="product-card">
               <div className="card-image-wrap" style={{ height: 140, background: 'var(--bg-page)' }}>
-                 <Package size={40} strokeWidth={1} style={{ opacity: 0.1 }} />
-                 <div className="card-badges">
-                   <button className="wishlist-btn active" style={{ top: 8, right: 8 }}>
-                     <Heart size={14} fill="currentColor" />
-                   </button>
-                 </div>
+                {item.image_url ? (
+                  <img src={`${API_BASE}${item.image_url}`} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                ) : (
+                  <Package size={40} strokeWidth={1} style={{ opacity: 0.1 }} />
+                )}
+                <div className="card-badges">
+                  <button 
+                    className="wishlist-btn active" 
+                    style={{ top: 8, right: 8 }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeFromWishlist(item.product_id);
+                    }}
+                  >
+                    <Heart size={14} fill="#EF4444" color="#EF4444" />
+                  </button>
+                </div>
               </div>
               <div className="card-body">
                 <div className="card-header">

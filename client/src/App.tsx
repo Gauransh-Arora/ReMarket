@@ -11,6 +11,7 @@ import SellPanel from './components/SellPanel';
 import MyProductsPanel from './components/MyProductsPanel';
 import WishlistPanel from './components/WishlistPanel';
 import OffersPanel from './components/OffersPanel';
+import TransactionsPanel from './components/TransactionsPanel';
 import ProductDetailModal from './components/ProductDetailModal';
 import { ShoppingCart } from 'lucide-react';
 
@@ -30,7 +31,7 @@ export interface Toast {
 
 function MainApp() {
   const { user, isLoading, accessToken } = useAuth();
-  const [activeView, setActiveView] = useState<'store' | 'chat' | 'sell' | 'my-listings' | 'wishlist' | 'offers'>('store');
+  const [activeView, setActiveView] = useState<'store' | 'chat' | 'sell' | 'my-listings' | 'wishlist' | 'offers' | 'transactions'>('store');
   const [chatTarget, setChatTarget] = useState<Product | null>(null);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -200,6 +201,8 @@ function MainApp() {
       if (res.ok) {
         setCartItems([]);
         showToast('Order placed successfully! 🎉', 'success');
+        // Optimistically remove the product from local state
+        setProducts(prev => prev.filter(p => p.id !== item.product.id));
         fetchProducts(); // Refresh to see "Sold" status
       } else {
         const errData = await res.json();
@@ -256,6 +259,8 @@ function MainApp() {
       if (res.ok) {
         showToast('Negotiated purchase complete! 🎉', 'success');
         setActiveView('store');
+        // Optimistically remove the product from local state
+        setProducts(prev => prev.filter(p => p.id !== productId));
         fetchProducts();
       } else {
         const errData = await res.json();
@@ -366,6 +371,8 @@ function MainApp() {
           <WishlistPanel onShopClick={() => setActiveView('store')} />
         ) : activeView === 'offers' ? (
           <OffersPanel onCheckout={handleOfferCheckout} />
+        ) : activeView === 'transactions' ? (
+          <TransactionsPanel />
         ) : (
           <SellPanel onBack={() => setActiveView('store')} onSuccess={() => {
             setActiveView('store');

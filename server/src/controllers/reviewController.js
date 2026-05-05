@@ -10,6 +10,7 @@ const submitReview = async (req, res) => {
         );
         res.status(201).json({ message: 'Review submitted' });
     } catch (err) {
+        console.error('submitReview error detailed:', err);
         res.status(400).json({ error: err.message });
     }
 };

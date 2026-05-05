@@ -29,8 +29,9 @@ const getMyTransactions = async (req, res) => {
     const userId = req.user.sub;
     try {
         const result = await pool.query(
-            `SELECT t.transaction_id, p.name as product_name, t.final_price, t.transaction_date, t.status,
-             CASE WHEN t.buyer_id = $1 THEN 'Bought' ELSE 'Sold' END as role
+            `SELECT t.transaction_id, p.name as product_name, t.final_price, t.transaction_date, t.status, t.seller_id, p.image_url,
+             CASE WHEN t.buyer_id = $1 THEN 'Bought' ELSE 'Sold' END as role,
+             EXISTS (SELECT 1 FROM public.reviews r WHERE r.transaction_id = t.transaction_id AND r.reviewer_id = $1) as is_reviewed
              FROM public.transactions t
              JOIN public.products p ON t.product_id = p.product_id
              WHERE t.buyer_id = $1 OR t.seller_id = $1
