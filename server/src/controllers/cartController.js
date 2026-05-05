@@ -4,6 +4,19 @@ const addToCart = async (req, res) => {
     const { product_id } = req.body;
     const user_id = req.user.sub;
     try {
+        const product = await pool.query(
+            'SELECT seller_id FROM public.products WHERE product_id = $1',
+            [product_id]
+        );
+
+        if (product.rows.length === 0) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+
+        if (product.rows[0].seller_id === user_id) {
+            return res.status(400).json({ message: 'You cannot add your own product to the cart' });
+        }
+
         const existing = await pool.query(
             'SELECT 1 FROM public.cart WHERE user_id = $1 AND product_id = $2',
             [user_id, product_id]

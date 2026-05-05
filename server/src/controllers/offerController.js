@@ -1,9 +1,6 @@
 const pool = require('../../db');
 
-/**
- * Place a new offer on a product.
- * This is gated by the trg_enforce_sunday_offers trigger in the DB.
- */
+
 const placeOffer = async (req, res) => {
     const { product_id, offered_price } = req.body;
     const buyer_id = req.user.sub;
@@ -26,7 +23,6 @@ const placeOffer = async (req, res) => {
         });
     } catch (err) {
         console.error('Place offer error:', err);
-        // Custom handling for the Sunday-only trigger exception
         if (err.message.includes('OFFER_RESTRICTION')) {
             return res.status(403).json({ 
                 message: 'Campus Policy: Negotiations and offers are only permitted on Sundays.' 
@@ -36,9 +32,7 @@ const placeOffer = async (req, res) => {
     }
 };
 
-/**
- * Get offers related to the user (either sent or received).
- */
+
 const getMyOffers = async (req, res) => {
     const userId = req.user.sub;
     try {
@@ -65,11 +59,9 @@ const getMyOffers = async (req, res) => {
     }
 };
 
-/**
- * Respond to an offer (Accept/Reject).
- */
+
 const respondToOffer = async (req, res) => {
-    const { offer_id, action } = req.body; // action: 'Accepted' or 'Rejected'
+    const { offer_id, action } = req.body;
     const seller_id = req.user.sub;
 
     if (!offer_id || !['Accepted', 'Rejected'].includes(action)) {

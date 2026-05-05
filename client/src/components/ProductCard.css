@@ -226,3 +226,18 @@
 .msg-seller-btn:hover {
   background: var(--border-color);
 }
+
+.own-product-badge {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  background: var(--bg-input);
+  color: var(--text-muted);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px dashed var(--border-color);
+}
